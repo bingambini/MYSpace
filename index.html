@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tails - 3D Character</title>
+    <title>Tails Walking in Room</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             overflow: hidden; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a2e;
             font-family: 'Segoe UI', sans-serif;
         }
         #canvas-container { 
@@ -25,61 +25,72 @@
             font-size: 1.5em;
             z-index: 1000;
             text-align: center;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             padding: 30px 50px;
             border-radius: 15px;
         }
         .loading.hidden { display: none; }
         
-        .info {
+        .controls {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(10, 14, 39, 0.9);
+            background: rgba(10, 14, 39, 0.95);
             border: 1px solid rgba(100, 181, 246, 0.3);
             border-radius: 15px;
             padding: 15px 25px;
             color: #fff;
             z-index: 100;
-            text-align: center;
+            display: flex;
+            gap: 10px;
         }
-        .info p { font-size: 0.9em; margin: 5px 0; }
         
-        .title {
+        .btn {
+            background: linear-gradient(135deg, #64b5f6, #1565c0);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(100,181,246,0.4); }
+        .btn.active { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+        
+        .info {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(10, 14, 39, 0.9);
+            background: rgba(10, 14, 39, 0.95);
             border: 1px solid rgba(100, 181, 246, 0.3);
             border-radius: 15px;
             padding: 15px 30px;
             color: #fff;
             z-index: 100;
             text-align: center;
-            font-size: 1.3em;
+            font-size: 1.1em;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
-    <div class="loading" id="loading">იტვირთება Tails...</div>
+    <div class="loading" id="loading">იტვირთება...</div>
     
-    <div class="title">🦊 Tails - 3D Character</div>
+    <div class="info">🦊 Tails - ოთახში სიარული</div>
     
-    <div class="info">
-        <p>🖱️ მარცხენა ღილაკი - ტრიალება</p>
-        <p>🔍 Scroll - Zoom</p>
-        <p>➡️ მარჯვენა ღილაკი - გადაადგილება</p>
+    <div class="controls">
+        <button class="btn" id="btnWalk" onclick="toggleWalking()">🚶 სიარული</button>
+        <button class="btn" onclick="randomPosition()">🎲 შემთხვევითი პოზიცია</button>
+        <button class="btn" onclick="resetPosition()">🔄 თავიდან</button>
     </div>
 
-    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- GLTFLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <!-- OrbitControls -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     
     <script>
@@ -89,7 +100,7 @@
         
         // კამერა
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 2, 3);
+        camera.position.set(8, 6, 8);
         
         // რენდერი
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -102,11 +113,11 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.minDistance = 1;
+        controls.minDistance = 3;
         controls.maxDistance = 20;
         
         // განათება
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
         
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -116,69 +127,88 @@
         dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
         
-        const pointLight1 = new THREE.PointLight(0xfff0dd, 0.5, 10);
-        pointLight1.position.set(-3, 3, -3);
-        scene.add(pointLight1);
-        
-        const pointLight2 = new THREE.PointLight(0xfff0dd, 0.5, 10);
-        pointLight2.position.set(3, 3, 3);
-        scene.add(pointLight2);
-        
-        // იატაკი
-        const floorGeo = new THREE.CircleGeometry(5, 32);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        // ოთახის იატაკი
+        const floorGeo = new THREE.PlaneGeometry(10, 10);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0xd4a574 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = 0;
         floor.receiveShadow = true;
         scene.add(floor);
         
-        // GLB მოდელის ჩატვირთვა
+        // კედლები
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf5f0e8 });
+        
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 0.2), wallMat);
+        backWall.position.set(0, 2, -5);
+        backWall.receiveShadow = true;
+        scene.add(backWall);
+        
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4, 10), wallMat);
+        leftWall.position.set(-5, 2, 0);
+        leftWall.receiveShadow = true;
+        scene.add(leftWall);
+        
+        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4, 10), wallMat);
+        rightWall.position.set(5, 2, 0);
+        rightWall.receiveShadow = true;
+        scene.add(rightWall);
+        
+        // ხალიჩა
+        const rug = new THREE.Mesh(
+            new THREE.PlaneGeometry(4, 3),
+            new THREE.MeshStandardMaterial({ color: 0xb8a88a })
+        );
+        rug.rotation.x = -Math.PI / 2;
+        rug.position.set(0, 0.01, 0);
+        rug.receiveShadow = true;
+        scene.add(rug);
+        
+        // Tails მოდელი
+        let tailsModel = null;
+        let isWalking = false;
+        let targetPosition = new THREE.Vector3(0, 0, 0);
+        let walkSpeed = 0.03;
+        let bounceTime = 0;
+        
         const loader = new THREE.GLTFLoader();
         
         loader.load(
             'tails_movie_roblox_no_rig.glb',
             function(gltf) {
-                const model = gltf.scene;
+                tailsModel = gltf.scene;
                 
-                // მოდელის ზომის და ცენტრის გამოთვლა
-                const box = new THREE.Box3().setFromObject(model);
+                // მოდელის ზომა და ცენტრი
+                const box = new THREE.Box3().setFromObject(tailsModel);
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
                 
-                console.log('მოდელის ზომა:', size);
-                console.log('მოდელის ცენტრი:', center);
+                // ცენტრირება
+                tailsModel.position.x -= center.x;
+                tailsModel.position.y -= center.y;
+                tailsModel.position.z -= center.z;
                 
-                // მოდელის ცენტრირება
-                model.position.x -= center.x;
-                model.position.y -= center.y;
-                model.position.z -= center.z;
-                
-                // მასშტაბის რეგულირება
+                // მასშტაბი
                 const maxDim = Math.max(size.x, size.y, size.z);
-                const targetSize = 2;
-                const scale = targetSize / maxDim;
-                model.scale.set(scale, scale, scale);
+                const scale = 1.5 / maxDim;
+                tailsModel.scale.set(scale, scale, scale);
                 
-                // მოდელის განთავსება იატაკზე
-                const newBox = new THREE.Box3().setFromObject(model);
-                model.position.y -= newBox.min.y;
+                // იატაკზე განთავსება
+                const newBox = new THREE.Box3().setFromObject(tailsModel);
+                tailsModel.position.y -= newBox.min.y;
                 
-                scene.add(model);
+                scene.add(tailsModel);
                 
-                // ჩრდილების ჩართვა
-                model.traverse(function(child) {
+                // ჩრდილები
+                tailsModel.traverse(function(child) {
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
                     }
                 });
                 
-                // კამერის პოზიცია
-                camera.position.set(3, 2, 3);
-                camera.lookAt(0, 1, 0);
-                controls.target.set(0, 1, 0);
-                controls.update();
+                // საწყისი პოზიცია
+                tailsModel.position.set(0, 0, 0);
                 
                 document.getElementById('loading').classList.add('hidden');
                 console.log('✓ Tails ჩაიტვირთა!');
@@ -195,9 +225,83 @@
             }
         );
         
+        // სიარულის ჩართვა/გამორთვა
+        function toggleWalking() {
+            isWalking = !isWalking;
+            const btn = document.getElementById('btnWalk');
+            if (isWalking) {
+                btn.classList.add('active');
+                btn.textContent = '⏸️ გაჩერება';
+                randomPosition();
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🚶 სიარული';
+            }
+        }
+        
+        // შემთხვევითი პოზიცია
+        function randomPosition() {
+            if (!tailsModel) return;
+            
+            // ოთახის საზღვრები (-4 to 4)
+            const x = (Math.random() - 0.5) * 8;
+            const z = (Math.random() - 0.5) * 8;
+            targetPosition.set(x, 0, z);
+            
+            if (!isWalking) {
+                isWalking = true;
+                document.getElementById('btnWalk').classList.add('active');
+                document.getElementById('btnWalk').textContent = '⏸️ გაჩერება';
+            }
+        }
+        
+        // თავიდან
+        function resetPosition() {
+            if (!tailsModel) return;
+            tailsModel.position.set(0, 0, 0);
+            targetPosition.set(0, 0, 0);
+            isWalking = false;
+            document.getElementById('btnWalk').classList.remove('active');
+            document.getElementById('btnWalk').textContent = '🚶 სიარული';
+        }
+        
         // ანიმაცია
         function animate() {
             requestAnimationFrame(animate);
+            
+            if (tailsModel && isWalking) {
+                // მოძრაობა სამიზნისკენ
+                const dx = targetPosition.x - tailsModel.position.x;
+                const dz = targetPosition.z - tailsModel.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                if (distance > 0.1) {
+                    // მოძრაობა
+                    tailsModel.position.x += (dx / distance) * walkSpeed;
+                    tailsModel.position.z += (dz / distance) * walkSpeed;
+                    
+                    // ბრუნვა მოძრაობის მიმართულებით
+                    const angle = Math.atan2(dx, dz);
+                    tailsModel.rotation.y = angle;
+                    
+                    // Bounce ანიმაცია (სიარულის იმიტაცია)
+                    bounceTime += 0.15;
+                    const bounce = Math.abs(Math.sin(bounceTime)) * 0.1;
+                    
+                    // იატაკის დონე + bounce
+                    const box = new THREE.Box3().setFromObject(tailsModel);
+                    const modelHeight = box.max.y - box.min.y;
+                    tailsModel.position.y = bounce;
+                    
+                } else {
+                    // მიაღწია სამიზნეს - ახალი სამიზნე
+                    setTimeout(() => {
+                        if (isWalking) randomPosition();
+                    }, 1000);
+                    isWalking = false;
+                }
+            }
+            
             controls.update();
             renderer.render(scene, camera);
         }
