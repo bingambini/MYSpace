@@ -127,7 +127,7 @@
     <div class="error-message" id="errorMessage"></div>
     
     <div class="ui-panel">
-        <h2>🤖 აგენტები</h2>
+        <h2> აგენტები</h2>
         <div id="agentList"></div>
     </div>
     
@@ -139,14 +139,14 @@
     
     <div class="controls">
         <button class="btn" onclick="assignRandomTask()">📋 ამოცანის მინიჭება</button>
-        <button class="btn btn-green" onclick="makeAllWork()">⚡ ყველას მუშაობა</button>
+        <button class="btn btn-green" onclick="makeAllWork()"> ყველას მუშაობა</button>
         <button class="btn btn-orange" onclick="resetAgents()">🔄 რესტარტი</button>
     </div>
 
     <script>
         window.onerror = function(msg, url, lineNo, columnNo, error) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `❌ შეცდომა:<br><br>${msg}<br><br>ხაზი: ${lineNo}`;
+            errorDiv.innerHTML = '❌ შეცდომა:<br><br>' + msg + '<br><br>ხაზი: ' + lineNo;
             errorDiv.classList.add('show');
             document.getElementById('loading').classList.add('hidden');
             return false;
@@ -175,11 +175,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         
-        // ============ ტექსტურები ============
+        // ტექსტურების შექმნა
         function createWoodTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 512;
@@ -188,7 +186,7 @@
             ctx.fillStyle = '#c4956a';
             ctx.fillRect(0, 0, 512, 512);
             for (let i = 0; i < 512; i += 8) {
-                ctx.strokeStyle = `rgba(139, 115, 85, ${0.3 + Math.random() * 0.4})`;
+                ctx.strokeStyle = 'rgba(139, 115, 85, ' + (0.3 + Math.random() * 0.4) + ')';
                 ctx.lineWidth = 1 + Math.random() * 2;
                 ctx.beginPath();
                 ctx.moveTo(0, i);
@@ -210,10 +208,10 @@
             ctx.fillRect(0, 0, 512, 512);
             for (let i = 0; i < 8; i++) {
                 const y = i * 64;
-                ctx.fillStyle = `rgba(180, 140, 100, ${0.2 + Math.random() * 0.3})`;
+                ctx.fillStyle = 'rgba(180, 140, 100, ' + (0.2 + Math.random() * 0.3) + ')';
                 ctx.fillRect(0, y, 512, 2);
                 for (let j = 0; j < 64; j += 4) {
-                    ctx.strokeStyle = `rgba(139, 115, 85, ${0.1 + Math.random() * 0.2})`;
+                    ctx.strokeStyle = 'rgba(139, 115, 85, ' + (0.1 + Math.random() * 0.2) + ')';
                     ctx.beginPath();
                     ctx.moveTo(0, y + j);
                     ctx.lineTo(512, y + j + (Math.random() - 0.5) * 5);
@@ -235,7 +233,7 @@
             ctx.fillStyle = '#f5f0e8';
             ctx.fillRect(0, 0, 256, 256);
             for (let i = 0; i < 1000; i++) {
-                ctx.fillStyle = `rgba(200, 195, 185, ${Math.random() * 0.3})`;
+                ctx.fillStyle = 'rgba(200, 195, 185, ' + (Math.random() * 0.3) + ')';
                 ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
             }
             return new THREE.CanvasTexture(canvas);
@@ -262,7 +260,7 @@
             return new THREE.CanvasTexture(canvas);
         }
         
-        // ============ განათება ============
+        // განათება
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
         
@@ -298,7 +296,7 @@
         const wallTexture = createWallTexture();
         const rugTexture = createRugTexture();
         
-        // ============ ოთახი ============
+        // ოთახის შექმნა
         function createRoom() {
             const roomGroup = new THREE.Group();
             
@@ -359,8 +357,9 @@
             return roomGroup;
         }
         
-        // ============ მაგიდა ============
-        function createDesk(x, z, rotation = 0) {
+        // მაგიდის შექმნა
+        function createDesk(x, z, rotation) {
+            rotation = rotation || 0;
             const deskGroup = new THREE.Group();
             
             const top = new THREE.Mesh(
@@ -374,9 +373,10 @@
             
             const legMat = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
             const legGeo = new THREE.BoxGeometry(0.08, 0.75, 0.08);
-            [[-1, 0.375, -0.45], [1, 0.375, -0.45], [-1, 0.375, 0.45], [1, 0.375, 0.45]].forEach(pos => {
+            var legPositions = [[-1, 0.375, -0.45], [1, 0.375, -0.45], [-1, 0.375, 0.45], [1, 0.375, 0.45]];
+            legPositions.forEach(function(pos) {
                 const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(...pos);
+                leg.position.set(pos[0], pos[1], pos[2]);
                 leg.castShadow = true;
                 deskGroup.add(leg);
             });
@@ -450,9 +450,10 @@
             
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
             const wheelGeo = new THREE.SphereGeometry(0.04, 8, 8);
-            [[-0.2, 0.04, 0.55], [0.2, 0.04, 0.55], [-0.2, 0.04, 0.85], [0.2, 0.04, 0.85], [0, 0.04, 0.7]].forEach(pos => {
+            var wheelPositions = [[-0.2, 0.04, 0.55], [0.2, 0.04, 0.55], [-0.2, 0.04, 0.85], [0.2, 0.04, 0.85], [0, 0.04, 0.7]];
+            wheelPositions.forEach(function(pos) {
                 const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                wheel.position.set(...pos);
+                wheel.position.set(pos[0], pos[1], pos[2]);
                 deskGroup.add(wheel);
             });
             
@@ -461,6 +462,7 @@
             return deskGroup;
         }
         
+        // წიგნების თარო
         function createBookshelf(x, z) {
             const shelfGroup = new THREE.Group();
             const frameMat = new THREE.MeshStandardMaterial({ map: woodTexture, roughness: 0.7 });
@@ -502,7 +504,9 @@
             return shelfGroup;
         }
         
-        function createWhiteboard(x, z, rotation = 0) {
+        // Whiteboard
+        function createWhiteboard(x, z, rotation) {
+            rotation = rotation || 0;
             const wbGroup = new THREE.Group();
             
             const frame = new THREE.Mesh(
@@ -535,6 +539,7 @@
             return wbGroup;
         }
         
+        // ყავის სადგური
         function createCoffeeStation(x, z) {
             const stationGroup = new THREE.Group();
             
@@ -548,9 +553,10 @@
             
             const legMat = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
             const legGeo = new THREE.BoxGeometry(0.08, 0.9, 0.08);
-            [[-0.65, 0.45, -0.3], [0.65, 0.45, -0.3], [-0.65, 0.45, 0.3], [0.65, 0.45, 0.3]].forEach(pos => {
+            var positions = [[-0.65, 0.45, -0.3], [0.65, 0.45, -0.3], [-0.65, 0.45, 0.3], [0.65, 0.45, 0.3]];
+            positions.forEach(function(pos) {
                 const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(...pos);
+                leg.position.set(pos[0], pos[1], pos[2]);
                 leg.castShadow = true;
                 stationGroup.add(leg);
             });
@@ -576,7 +582,9 @@
             return stationGroup;
         }
         
-        function createPlant(x, z, scale = 1) {
+        // მცენარე
+        function createPlant(x, z, scale) {
+            scale = scale || 1;
             const plantGroup = new THREE.Group();
             
             const pot = new THREE.Mesh(
@@ -605,6 +613,7 @@
             return plantGroup;
         }
         
+        // იატაკის ნათურა
         function createFloorLamp(x, z) {
             const lampGroup = new THREE.Group();
             
@@ -643,37 +652,11 @@
             return lampGroup;
         }
         
-        // ============ სცენის აწყობა ============
-        scene.add(createRoom());
-        
-        const deskPositions = [
-            { x: -4, z: -3, rot: 0 },
-            { x: 0, z: -3, rot: 0 },
-            { x: 4, z: -3, rot: 0 },
-            { x: -4, z: 2, rot: 0 },
-            { x: 4, z: 2, rot: 0 }
-        ];
-        
-        const desks = [];
-        deskPositions.forEach((pos, i) => {
-            const desk = createDesk(pos.x, pos.z, pos.rot);
-            scene.add(desk);
-            desks.push({ mesh: desk, position: new THREE.Vector3(pos.x, 0, pos.z), id: i });
-        });
-        
-        scene.add(createBookshelf(-6.5, -4));
-        scene.add(createWhiteboard(0, -5.8));
-        scene.add(createCoffeeStation(6, -4));
-        scene.add(createPlant(-6, 4, 1.5));
-        scene.add(createPlant(6, 4, 1.2));
-        scene.add(createPlant(-6, -4, 1));
-        scene.add(createFloorLamp(-6, 3));
-        
-        // ============ აგენტი (CAPSULE GEOMETRY-ის ნაცვლად Cylinder + Spheres) ============
+        // აგენტის შექმნა - CylinderGeometry-ით (CapsuleGeometry-ის ნაცვლად!)
         function createAgent(color, name) {
             const agentGroup = new THREE.Group();
             
-            // სხეული - CylinderGeometry (CapsuleGeometry-ის ნაცვლად)
+            // სხეული
             const bodyGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16);
             const bodyMat = new THREE.MeshStandardMaterial({ 
                 color: color,
@@ -726,7 +709,7 @@
             rightEye.position.set(0.08, 1.27, 0.18);
             agentGroup.add(rightEye);
             
-            // ხელები (მარტივი ცილინდრები)
+            // ხელები
             const armMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.5, metalness: 0.3 });
             const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 8), armMat);
             leftArm.position.set(-0.28, 0.6, 0);
@@ -755,6 +738,33 @@
             return agentGroup;
         }
         
+        // სცენის აწყობა
+        scene.add(createRoom());
+        
+        const deskPositions = [
+            { x: -4, z: -3, rot: 0 },
+            { x: 0, z: -3, rot: 0 },
+            { x: 4, z: -3, rot: 0 },
+            { x: -4, z: 2, rot: 0 },
+            { x: 4, z: 2, rot: 0 }
+        ];
+        
+        const desks = [];
+        deskPositions.forEach(function(pos, i) {
+            const desk = createDesk(pos.x, pos.z, pos.rot);
+            scene.add(desk);
+            desks.push({ mesh: desk, position: new THREE.Vector3(pos.x, 0, pos.z), id: i });
+        });
+        
+        scene.add(createBookshelf(-6.5, -4));
+        scene.add(createWhiteboard(0, -5.8));
+        scene.add(createCoffeeStation(6, -4));
+        scene.add(createPlant(-6, 4, 1.5));
+        scene.add(createPlant(6, 4, 1.2));
+        scene.add(createPlant(-6, -4, 1));
+        scene.add(createFloorLamp(-6, 3));
+        
+        // აგენტები
         const agents = [
             { name: 'კოპირაითერი 1', color: 0x9c27b0, state: 'idle', desk: null, mesh: null, targetPos: null },
             { name: 'კოპირაითერი 2', color: 0x2196f3, state: 'idle', desk: null, mesh: null, targetPos: null },
@@ -762,14 +772,14 @@
             { name: 'SEO სპეციალისტი', color: 0x4caf50, state: 'idle', desk: null, mesh: null, targetPos: null }
         ];
         
-        agents.forEach((agent, i) => {
+        agents.forEach(function(agent, i) {
             const mesh = createAgent(agent.color, agent.name);
             mesh.position.set(-6 + i * 1.5, 0, 4.5);
             scene.add(mesh);
             agent.mesh = mesh;
         });
         
-        // ============ მოძრაობა ============
+        // მოძრაობის სისტემა
         function moveAgentToDesk(agent, desk) {
             agent.state = 'walking';
             agent.desk = desk;
@@ -799,14 +809,16 @@
             agent.mesh.position.y = Math.abs(Math.sin(Date.now() * 0.01)) * 0.05;
         }
         
-        // ============ ამოცანები ============
+        // ამოცანების სისტემა
         let taskCount = 0;
         
         function assignRandomTask() {
-            const idleAgents = agents.filter(a => a.state === 'idle');
+            const idleAgents = agents.filter(function(a) { return a.state === 'idle'; });
             if (idleAgents.length === 0) return;
             
-            const availableDesks = desks.filter(d => !agents.some(a => a.desk === d));
+            const availableDesks = desks.filter(function(d) { 
+                return !agents.some(function(a) { return a.desk === d; }); 
+            });
             if (availableDesks.length === 0) return;
             
             const agent = idleAgents[Math.floor(Math.random() * idleAgents.length)];
@@ -818,9 +830,11 @@
         }
         
         function makeAllWork() {
-            agents.forEach(agent => {
+            agents.forEach(function(agent) {
                 if (agent.state === 'idle') {
-                    const availableDesks = desks.filter(d => !agents.some(a => a.desk === d));
+                    const availableDesks = desks.filter(function(d) { 
+                        return !agents.some(function(a) { return a.desk === d; }); 
+                    });
                     if (availableDesks.length > 0) {
                         const desk = availableDesks[0];
                         moveAgentToDesk(agent, desk);
@@ -832,7 +846,7 @@
         }
         
         function resetAgents() {
-            agents.forEach((agent, i) => {
+            agents.forEach(function(agent, i) {
                 agent.state = 'idle';
                 agent.desk = null;
                 agent.targetPos = null;
@@ -843,7 +857,7 @@
             updateUI();
         }
         
-        // ============ UI ============
+        // UI განახლება
         function updateUI() {
             const list = document.getElementById('agentList');
             list.innerHTML = '';
@@ -851,26 +865,26 @@
             const statusText = {
                 'idle': '🟢 თავისუფალი',
                 'walking': '🚶 მიდის მაგიდასთან',
-                'working': '💻 მუშაობს'
+                'working': ' მუშაობს'
             };
             
-            agents.forEach(agent => {
+            agents.forEach(function(agent) {
                 const card = document.createElement('div');
                 card.className = 'agent-card';
-                card.innerHTML = `
-                    <div class="name" style="color: #${agent.color.toString(16).padStart(6, '0')}">${agent.name}</div>
-                    <div class="status ${agent.state}">${statusText[agent.state]}</div>
-                `;
-                card.onclick = () => { if (agent.state === 'idle') assignRandomTask(); };
+                const colorHex = agent.color.toString(16);
+                const paddedColor = colorHex.length < 6 ? '0'.repeat(6 - colorHex.length) + colorHex : colorHex;
+                card.innerHTML = '<div class="name" style="color: #' + paddedColor + '">' + agent.name + '</div>' +
+                    '<div class="status ' + agent.state + '">' + statusText[agent.state] + '</div>';
+                card.onclick = function() { if (agent.state === 'idle') assignRandomTask(); };
                 list.appendChild(card);
             });
             
-            document.getElementById('statActive').textContent = agents.filter(a => a.state === 'working').length;
-            document.getElementById('statIdle').textContent = agents.filter(a => a.state === 'idle').length;
+            document.getElementById('statActive').textContent = agents.filter(function(a) { return a.state === 'working'; }).length;
+            document.getElementById('statIdle').textContent = agents.filter(function(a) { return a.state === 'idle'; }).length;
             document.getElementById('statTasks').textContent = taskCount;
         }
         
-        // ============ ანიმაცია ============
+        // ანიმაცია
         const clock = new THREE.Clock();
         let cameraAngle = 0;
         
@@ -878,7 +892,7 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             
-            agents.forEach(agent => updateAgentMovement(agent, delta));
+            agents.forEach(function(agent) { updateAgentMovement(agent, delta); });
             
             cameraAngle += 0.0003;
             camera.position.x = Math.cos(cameraAngle) * 18;
@@ -889,13 +903,13 @@
             renderer.render(scene, camera);
         }
         
-        window.addEventListener('resize', () => {
+        window.addEventListener('resize', function() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // ============ სტარტი ============
+        // სტარტი
         console.log('✓ ყველაფერი მზადაა');
         document.getElementById('loading').classList.add('hidden');
         updateUI();
