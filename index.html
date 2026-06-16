@@ -3,408 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent Office - Top View</title>
+    <title>Tails - 3D Character</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background: #2a2a3e; font-family: 'Segoe UI', sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; }
+        body { 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #canvas-container { 
+            width: 100vw; 
+            height: 100vh; 
+        }
         
-        .ui-panel {
+        .loading {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(10, 14, 39, 0.95);
-            border: 1px solid rgba(100, 181, 246, 0.3);
-            border-radius: 15px;
-            padding: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #fff;
-            z-index: 100;
-            min-width: 260px;
+            font-size: 1.5em;
+            z-index: 1000;
+            text-align: center;
+            background: rgba(0,0,0,0.5);
+            padding: 30px 50px;
+            border-radius: 15px;
         }
-        .ui-panel h2 { font-size: 1.2em; margin-bottom: 15px; color: #64b5f6; }
+        .loading.hidden { display: none; }
         
-        .agent-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px;
-            margin: 8px 0;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .agent-card:hover { background: rgba(100, 181, 246, 0.2); border-color: #64b5f6; }
-        .agent-card .name { font-weight: bold; }
-        .agent-card .status { font-size: 0.85em; margin-top: 4px; }
-        .agent-card .status.idle { color: #4caf50; }
-        .agent-card .status.walking { color: #2196f3; }
-        .agent-card .status.working { color: #ffc107; }
-        
-        .controls {
+        .info {
             position: fixed;
-            bottom: 25px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-        .btn {
-            background: linear-gradient(135deg, #64b5f6, #1565c0);
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 0.95em;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(100,181,246,0.4); }
-        .btn-green { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
-        .btn-orange { background: linear-gradient(135deg, #ffa726, #e65100); }
-        
-        .info-bar {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(10, 14, 39, 0.95);
+            background: rgba(10, 14, 39, 0.9);
             border: 1px solid rgba(100, 181, 246, 0.3);
             border-radius: 15px;
-            padding: 15px 20px;
+            padding: 15px 25px;
             color: #fff;
             z-index: 100;
             text-align: center;
         }
-        .info-bar .stat { margin: 5px 0; font-size: 0.9em; }
-        .info-bar .stat span { color: #64b5f6; font-weight: bold; }
+        .info p { font-size: 0.9em; margin: 5px 0; }
+        
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 14, 39, 0.9);
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            border-radius: 15px;
+            padding: 15px 30px;
+            color: #fff;
+            z-index: 100;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
+    <div class="loading" id="loading">იტვირთება Tails...</div>
     
-    <div class="ui-panel">
-        <h2> აგენტები</h2>
-        <div id="agentList"></div>
-    </div>
+    <div class="title">🦊 Tails - 3D Character</div>
     
-    <div class="info-bar">
-        <div class="stat">აქტიური: <span id="statActive">0</span></div>
-        <div class="stat">თავისუფალი: <span id="statIdle">0</span></div>
-        <div class="stat">ამოცანები: <span id="statTasks">0</span></div>
-    </div>
-    
-    <div class="controls">
-        <button class="btn" onclick="assignRandomTask()">📋 ამოცანა</button>
-        <button class="btn btn-green" onclick="makeAllWork()">⚡ ყველას მუშაობა</button>
-        <button class="btn btn-orange" onclick="resetAgents()">🔄 რესტარტი</button>
+    <div class="info">
+        <p>🖱️ მარცხენა ღილაკი - ტრიალება</p>
+        <p>🔍 Scroll - Zoom</p>
+        <p>➡️ მარჯვენა ღილაკი - გადაადგილება</p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js?v=4.0"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
     <script>
-        // ============================================
-        // ვერსია 4.0 - ზედ ხედი, კედლების გარეშე
-        // ============================================
-        
         // სცენა
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a2e);
+        scene.background = new THREE.Color(0x87ceeb);
         
-        // კამერა - ზემოდან, ოდნავ დახრილი
-        // x: 0 (ცენტრში), y: 18 (მაღლა), z: 8 (ოდნავ უკან)
+        // კამერა
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 18, 8);  // ზემოდან, ოდნავ დახრილი
-        camera.lookAt(0, 0, 0);  // ცენტრში იყურება
+        camera.position.set(3, 2, 3);
         
+        // რენდერი
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 1;
+        controls.maxDistance = 20;
         
         // განათება
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
         
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        dirLight.position.set(5, 15, 5);
+        dirLight.position.set(5, 10, 5);
         dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
         
-        // იატაკი (მხოლოდ იატაკი - კედლები არ არის!)
-        const floorGeo = new THREE.BoxGeometry(16, 0.2, 14);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0xd4a574 });
+        const pointLight1 = new THREE.PointLight(0xfff0dd, 0.5, 10);
+        pointLight1.position.set(-3, 3, -3);
+        scene.add(pointLight1);
+        
+        const pointLight2 = new THREE.PointLight(0xfff0dd, 0.5, 10);
+        pointLight2.position.set(3, 3, 3);
+        scene.add(pointLight2);
+        
+        // იატაკი
+        const floorGeo = new THREE.CircleGeometry(5, 32);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.position.y = -0.1;
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
         floor.receiveShadow = true;
         scene.add(floor);
         
-        // ხალიჩა
-        const rug = new THREE.Mesh(new THREE.BoxGeometry(7, 0.05, 5), new THREE.MeshStandardMaterial({ color: 0xb8a88a }));
-        rug.position.set(0, 0.02, 0);
-        rug.receiveShadow = true;
-        scene.add(rug);
+        // GLB მოდელის ჩატვირთვა
+        const loader = new THREE.GLTFLoader();
         
-        // მაგიდის შექმნა
-        function createDesk(x, z) {
-            const deskGroup = new THREE.Group();
-            
-            // მაგიდა
-            const desk = new THREE.Mesh(
-                new THREE.BoxGeometry(1.8, 0.08, 1),
-                new THREE.MeshStandardMaterial({ color: 0xc4956a })
-            );
-            desk.position.y = 0.75;
-            desk.castShadow = true;
-            desk.receiveShadow = true;
-            deskGroup.add(desk);
-            
-            // ფეხები
-            const legMat = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
-            const legGeo = new THREE.BoxGeometry(0.08, 0.75, 0.08);
-            [[-0.8, 0.375, -0.4], [0.8, 0.375, -0.4], [-0.8, 0.375, 0.4], [0.8, 0.375, 0.4]].forEach(pos => {
-                const leg = new THREE.Mesh(legGeo, legMat);
-                leg.position.set(...pos);
-                leg.castShadow = true;
-                deskGroup.add(leg);
-            });
-            
-            // მონიტორი
-            const monitor = new THREE.Mesh(
-                new THREE.BoxGeometry(0.8, 0.5, 0.05),
-                new THREE.MeshStandardMaterial({ color: 0x222222 })
-            );
-            monitor.position.set(0, 1.1, -0.3);
-            monitor.castShadow = true;
-            deskGroup.add(monitor);
-            
-            // ეკრანი
-            const screen = new THREE.Mesh(
-                new THREE.BoxGeometry(0.72, 0.42, 0.02),
-                new THREE.MeshStandardMaterial({ color: 0x4488ff, emissive: 0x4488ff, emissiveIntensity: 0.3 })
-            );
-            screen.position.set(0, 1.1, -0.28);
-            deskGroup.add(screen);
-            
-            // კლავიატურა
-            const kb = new THREE.Mesh(
-                new THREE.BoxGeometry(0.5, 0.03, 0.2),
-                new THREE.MeshStandardMaterial({ color: 0x333333 })
-            );
-            kb.position.set(0, 0.81, 0.1);
-            deskGroup.add(kb);
-            
-            // მცენარე
-            const pot = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.08, 0.06, 0.12, 16),
-                new THREE.MeshStandardMaterial({ color: 0x8b4513 })
-            );
-            pot.position.set(0.6, 0.85, -0.3);
-            deskGroup.add(pot);
-            
-            const plant = new THREE.Mesh(
-                new THREE.SphereGeometry(0.15, 8, 8),
-                new THREE.MeshStandardMaterial({ color: 0x4caf50 })
-            );
-            plant.position.set(0.6, 1.02, -0.3);
-            deskGroup.add(plant);
-            
-            // სკამი
-            const seat = new THREE.Mesh(
-                new THREE.BoxGeometry(0.5, 0.08, 0.5),
-                new THREE.MeshStandardMaterial({ color: 0x555555 })
-            );
-            seat.position.set(0, 0.5, 0.65);
-            seat.castShadow = true;
-            deskGroup.add(seat);
-            
-            const back = new THREE.Mesh(
-                new THREE.BoxGeometry(0.5, 0.45, 0.08),
-                new THREE.MeshStandardMaterial({ color: 0x555555 })
-            );
-            back.position.set(0, 0.75, 0.85);
-            back.castShadow = true;
-            deskGroup.add(back);
-            
-            const seatLeg = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.04, 0.04, 0.5),
-                new THREE.MeshStandardMaterial({ color: 0x333333 })
-            );
-            seatLeg.position.set(0, 0.25, 0.65);
-            deskGroup.add(seatLeg);
-            
-            deskGroup.position.set(x, 0, z);
-            return deskGroup;
-        }
-        
-        // მაგიდები
-        const desks = [];
-        const deskPositions = [
-            { x: -4, z: -3 },
-            { x: 0, z: -3 },
-            { x: 4, z: -3 },
-            { x: -4, z: 2 },
-            { x: 4, z: 2 }
-        ];
-        
-        deskPositions.forEach((pos, i) => {
-            const desk = createDesk(pos.x, pos.z);
-            scene.add(desk);
-            desks.push({ mesh: desk, position: new THREE.Vector3(pos.x, 0, pos.z), id: i });
-        });
-        
-        // აგენტის შექმნა
-        function createAgent(color, name) {
-            const agentGroup = new THREE.Group();
-            
-            // სხეული
-            const body = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16),
-                new THREE.MeshStandardMaterial({ color: color })
-            );
-            body.position.y = 0.6;
-            body.castShadow = true;
-            agentGroup.add(body);
-            
-            // თავი
-            const head = new THREE.Mesh(
-                new THREE.SphereGeometry(0.22, 16, 16),
-                new THREE.MeshStandardMaterial({ color: color })
-            );
-            head.position.y = 1.15;
-            head.castShadow = true;
-            agentGroup.add(head);
-            
-            // თვალები
-            const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 });
-            const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
-            leftEye.position.set(-0.08, 1.17, 0.18);
-            agentGroup.add(leftEye);
-            
-            const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
-            rightEye.position.set(0.08, 1.17, 0.18);
-            agentGroup.add(rightEye);
-            
-            agentGroup.userData = { name: name, color: color };
-            return agentGroup;
-        }
-        
-        // აგენტები
-        const agents = [
-            { name: 'კოპირაითერი 1', color: 0x9c27b0, state: 'idle', desk: null, mesh: null },
-            { name: 'კოპირაითერი 2', color: 0x2196f3, state: 'idle', desk: null, mesh: null },
-            { name: 'რედაქტორი', color: 0xff9800, state: 'idle', desk: null, mesh: null },
-            { name: 'SEO სპეციალისტი', color: 0x4caf50, state: 'idle', desk: null, mesh: null }
-        ];
-        
-        agents.forEach((agent, i) => {
-            const mesh = createAgent(agent.color, agent.name);
-            mesh.position.set(-4 + i * 1.2, 0, 4);
-            scene.add(mesh);
-            agent.mesh = mesh;
-        });
-        
-        // ამოცანების სისტემა
-        let taskCount = 0;
-        
-        function moveAgentToDesk(agent, desk) {
-            agent.state = 'walking';
-            agent.desk = desk;
-            agent.targetX = desk.position.x;
-            agent.targetZ = desk.position.z + 1;
-        }
-        
-        function updateAgents() {
-            agents.forEach(agent => {
-                if (agent.state === 'walking') {
-                    const dx = agent.targetX - agent.mesh.position.x;
-                    const dz = agent.targetZ - agent.mesh.position.z;
-                    const dist = Math.sqrt(dx * dx + dz * dz);
-                    
-                    if (dist < 0.1) {
-                        agent.state = 'working';
-                        agent.mesh.position.y = 0.3;
-                        updateUI();
-                    } else {
-                        agent.mesh.position.x += (dx / dist) * 0.05;
-                        agent.mesh.position.z += (dz / dist) * 0.05;
-                        agent.mesh.rotation.y = Math.atan2(dx, dz);
+        loader.load(
+            'tails_movie_roblox_no_rig.glb',
+            function(gltf) {
+                const model = gltf.scene;
+                
+                // მოდელის ზომის და ცენტრის გამოთვლა
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+                
+                console.log('მოდელის ზომა:', size);
+                console.log('მოდელის ცენტრი:', center);
+                
+                // მოდელის ცენტრირება
+                model.position.x -= center.x;
+                model.position.y -= center.y;
+                model.position.z -= center.z;
+                
+                // მასშტაბის რეგულირება
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const targetSize = 2;
+                const scale = targetSize / maxDim;
+                model.scale.set(scale, scale, scale);
+                
+                // მოდელის განთავსება იატაკზე
+                const newBox = new THREE.Box3().setFromObject(model);
+                model.position.y -= newBox.min.y;
+                
+                scene.add(model);
+                
+                // ჩრდილების ჩართვა
+                model.traverse(function(child) {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
                     }
+                });
+                
+                // კამერის პოზიცია
+                camera.position.set(3, 2, 3);
+                camera.lookAt(0, 1, 0);
+                controls.target.set(0, 1, 0);
+                controls.update();
+                
+                document.getElementById('loading').classList.add('hidden');
+                console.log('✓ Tails ჩაიტვირთა!');
+            },
+            function(xhr) {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    document.getElementById('loading').textContent = 'იტვირთება... ' + percent + '%';
                 }
-            });
-        }
-        
-        function assignRandomTask() {
-            const idleAgents = agents.filter(a => a.state === 'idle');
-            const availableDesks = desks.filter(d => !agents.some(a => a.desk === d));
-            
-            if (idleAgents.length > 0 && availableDesks.length > 0) {
-                const agent = idleAgents[0];
-                const desk = availableDesks[0];
-                moveAgentToDesk(agent, desk);
-                taskCount++;
-                updateUI();
+            },
+            function(error) {
+                console.error('შეცდომა:', error);
+                document.getElementById('loading').textContent = '❌ შეცდომა: ' + error.message;
             }
-        }
+        );
         
-        function makeAllWork() {
-            agents.forEach(agent => {
-                if (agent.state === 'idle') {
-                    const availableDesks = desks.filter(d => !agents.some(a => a.desk === d));
-                    if (availableDesks.length > 0) {
-                        moveAgentToDesk(agent, availableDesks[0]);
-                        taskCount++;
-                    }
-                }
-            });
-            updateUI();
-        }
-        
-        function resetAgents() {
-            agents.forEach((agent, i) => {
-                agent.state = 'idle';
-                agent.desk = null;
-                agent.mesh.position.set(-4 + i * 1.2, 0, 4);
-                agent.mesh.position.y = 0;
-            });
-            taskCount = 0;
-            updateUI();
-        }
-        
-        function updateUI() {
-            const list = document.getElementById('agentList');
-            list.innerHTML = '';
-            
-            const statusText = { 'idle': '🟢 თავისუფალი', 'walking': '🚶 მიდის', 'working': '💻 მუშაობს' };
-            
-            agents.forEach(agent => {
-                const card = document.createElement('div');
-                card.className = 'agent-card';
-                const colorHex = agent.color.toString(16).padStart(6, '0');
-                card.innerHTML = '<div class="name" style="color:#' + colorHex + '">' + agent.name + '</div>' +
-                    '<div class="status ' + agent.state + '">' + statusText[agent.state] + '</div>';
-                card.onclick = () => { if (agent.state === 'idle') assignRandomTask(); };
-                list.appendChild(card);
-            });
-            
-            document.getElementById('statActive').textContent = agents.filter(a => a.state === 'working').length;
-            document.getElementById('statIdle').textContent = agents.filter(a => a.state === 'idle').length;
-            document.getElementById('statTasks').textContent = taskCount;
-        }
-        
-        // ანიმაცია - კამერა სტატიკურია!
+        // ანიმაცია
         function animate() {
             requestAnimationFrame(animate);
-            updateAgents();
+            controls.update();
             renderer.render(scene, camera);
         }
+        animate();
         
+        // ზომის ცვლილება
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
-        updateUI();
-        animate();
     </script>
 </body>
 </html>
